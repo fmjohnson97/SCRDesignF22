@@ -1,14 +1,17 @@
 import numpy as np
 
-# Intrinsic Parameters --> TODO: still need to find these
-fx = 5.1885790117450188e+02
-fy = 5.1946961112127485e+02
+# Intrinsic Parameters --> TODO: still need to find these for both cameras, apparently published in /camera/d435/camera_info
+#TODO: figure out which camera we're actually using for mono vision; USE THE LEFT IT'S PERFECTLY ALIGNED!!!
+fx = 1.88e-3 #5.1885790117450188e+02
+fy = 1.88e-3 #5.1946961112127485e+02
 cx = 3.2558244941119034e+02
 cy = 2.5373616633400465e+02
 
 K = np.array([[fx,   0,  cx],
             [0,    fy, cy],
             [0,    0,   1]])
+
+robot_offset = np.array([1,1,1]) #TODO: find the offset of the camera wrt robot center (in meters???)
 
 #dummy list of points as place holder for the ones we care about
 image_points=[[0,0], [240,320], [480,640]]
