@@ -18,11 +18,15 @@ import transformations as tf
 class SimpleController:
   def __init__(self):
     self.pub = rospy.Publisher('/locobot/cmd_vel', Twist)
-    self.linear_v = 0.1  # this is the max limit of the velocity value
-    self.ang_v = 5*np.pi/180  # positive is counter-clockwise, negative is clockwise
+    self.linear_v = 0.08  # this is the max limit of the velocity value
+    self.ang_v = 2*np.pi/180  # positive is counter-clockwise, negative is clockwise
     self.x_threshold = 1e-3
     self.theta_threshold = 1 * np.pi / 180
     rospy.sleep(1.0)
+    """
+    TODO: the current rotation seems to be a bit off. When we ask it to go 90 degrees, it dosen't really go 90 degrees.
+    Need to experiment and debug the rotation controller
+    """
 
   def get_odom(self):
     odom = rospy.wait_for_message('/locobot/odom', Odometry)
