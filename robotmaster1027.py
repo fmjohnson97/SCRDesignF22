@@ -9,6 +9,7 @@ stop=False
 
 #TODO: set robot, camera, arm to home position
 
+#TODO: kick off image saver code or else passive perception won't run
 
 
 while not stop:
@@ -21,6 +22,8 @@ while not stop:
             # TODO: filter for humans vs other objects
 
         #TODO: set patrol to start
+
+        #TODO: incorporate obstacle avoidance
 
 
 

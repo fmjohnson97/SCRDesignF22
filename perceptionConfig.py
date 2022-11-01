@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+from cv_bridge import CvBridge
 
 # Intrinsic Parameters -->  published in /camera/d435/camera_info
 #TODO: figure out which camera we're actually using for mono vision; USE THE LEFT IT'S PERFECTLY ALIGNED!!!
@@ -17,3 +18,6 @@ YOLO = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
 
 #base image folder
 base_image_folder_name = 'saved_imgs'
+
+#for converting image styles
+bridge = CvBridge()

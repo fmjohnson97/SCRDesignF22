@@ -1,6 +1,8 @@
 import torch
 import numpy as np
 import cv2
+import rospy
+from sensor_msgs.msg import Image
 
 from glob import glob
 
@@ -27,18 +29,22 @@ def getPointCloud(objects, depth_image):
     clouds=[]
     ids=[]
     for obj in objects.iloc:
-        clouds.append(pcd[int(obj[0]):int(obj[2]),int(obj[1]):int(obj[3])])
+        clouds.append(pcd[int(obj[0]):int(obj[2]),int(obj[1]):int(obj[3]),:])
         ids.append(obj[-1])
 
     return clouds, ids
 
 def read_next_image():
-    rgb=glob.glob(base_image_folder_name+'/rgb_*')
-    rgb.sort()
-    depth=glob.glob(base_image_folder_name+'/depth_*')
-    depth.sort()
-    rgb_img = np.array(cv2.imread(rgb[-1]))
-    depth_img = np.array(cv2.imread(depth[-1]))
+    # rgb=glob.glob(base_image_folder_name+'/rgb_*')
+    # rgb.sort()
+    # depth=glob.glob(base_image_folder_name+'/depth_*')
+    # depth.sort()
+    rgb_img = rospy.wait_for_message("/locobot/camera/color/image_raw", Image)
+    depth_img = rospy.wait_for_message("/locobot/camera/aligned_depth_to_color/image_raw", Image)
+    rgb_img = bridge.imgmsg_to_cv2(rgb_img, 'passthrough')
+    depth_img = bridge.imgmsg_to_cv2(depth_img, 'passthrough')
+    rgb_img = np.array(rgb_img)
+    depth_img = np.array(depth_img)
     return rgb_img, depth_img
 
 def passivePerception():
