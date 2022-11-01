@@ -9,6 +9,8 @@ from moveit_commander import move_group
 import rospy
 import moveit_commander
 from moveit_msgs.srv import GetStateValidityRequest, GetStateValidity
+from moveit_msgs.srv import GetPositionIKRequest, GetPositionIK
+from moveit_msgs.msg import PositionIKRequest
 import numpy as np
 from sensor_msgs.msg import PointCloud2, Image
 import sensor_msgs
@@ -237,6 +239,38 @@ class MotionPlanner():
             return True
         else:
             return False
+
+    def get_ik(self, link_pose, link_name):
+        # use the service "compute_ik" to compute the inverse kinematics for the arm
+        # http://docs.ros.org/en/api/moveit_msgs/html/srv/GetPositionIK.html
+        # TODO: handling the solution and parse it to the correct format for use
+        rospy.loginfo("calling compute_ik...")
+        rospy.wait_for_service('/locobot/compute_ik')
+        # generate message
+        try:
+            ros_srv = rospy.ServiceProxy('/locobot/compute_ik', GetPositionIK)
+            req = GetPositionIKRequest()
+            msg = PositionIKRequest()
+            msg.group_name = 'interbotix_arm'
+            msg.robot_state = self.move_group.get_current_state()
+            # msg.avoid_collisions = False
+            msg.ik_link_name = link_name
+            pose = PoseStamped()
+            pose.header.frame_id = 'base'  # this is the base link of the robot
+            pose.pose = link_pose
+            msg.pose_stamped = pose
+            msg.timeout = 0.1
+            req.ik_request = msg
+            resp1 = ros_srv(req)
+
+            del ros_srv
+
+        except rospy.ServiceException as e:
+            print("Service call failed: %s"%e)
+            sys.exit(1)
+        solution = resp1.solution  # RobotState
+        error = resp1.error_code
+        return solution
 
 def test_pose_plan(planner: MotionPlanner):
   # use current joint as start
