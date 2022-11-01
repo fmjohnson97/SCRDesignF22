@@ -16,6 +16,7 @@ import transformations as tf
 class OccupancyMap:
   def __init__(self):
     self.topic = '/locobot/move_base/global_costmap/costmap'
+    rospy.sleep(1.0)
     self.extract_map()
 
   def extract_map(self):
@@ -45,7 +46,7 @@ class OccupancyMap:
     self.width = width
     self.height = height
     self.pose = pose
-    data = msg.info.data
+    data = msg.data
     data = np.array(data).reshape((self.height, self.width))  # might be wrong
     self.data = data
 
@@ -57,3 +58,10 @@ class OccupancyMap:
     xi = int(np.floor(x / self.resol))
     yi = int(np.floor(y / self.resol))
     return self.data[xi,yi]
+
+
+if __name__=='__main__':
+  rospy.init_node('occuapncy_map_test')
+  oc_map = OccupancyMap()
+  print(oc_map.data)
+  print(np.unique(oc_map.data))

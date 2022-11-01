@@ -1,4 +1,5 @@
 from perceptionModule import passivePerception
+import rospy
 
 ### STARTUP ###
 # initialize functions, constants
@@ -7,6 +8,9 @@ trashFound=False
 goDrive=True
 stop=False
 
+
+rospy.init_node('robot_master')
+rospy.sleep(1.0)
 #TODO: set robot, camera, arm to home position
 
 #TODO: kick off image saver code or else passive perception won't run
@@ -19,6 +23,7 @@ while not stop:
         pointClouds, labels = passivePerception()
         if pointClouds is not None:
             objectFound=True
+            input('enter....')
             # TODO: filter for humans vs other objects
 
         #TODO: set patrol to start

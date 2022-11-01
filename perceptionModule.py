@@ -15,7 +15,7 @@ def getDetections(image):
     return results.pandas().xyxy
 
 def getPointCloud(objects, depth_image):
-    depth = np.array(depth_image)[:, :, 0] / 1000
+    depth = np.array(depth_image) / 1000
     i, j = np.indices(depth.shape)
     x = (j - cx) / fx * depth
     y = (i - cy) / fy * depth
@@ -28,8 +28,9 @@ def getPointCloud(objects, depth_image):
     # pcd = pcd[mask]
     clouds=[]
     ids=[]
-    for obj in objects.iloc:
-        clouds.append(pcd[int(obj[0]):int(obj[2]),int(obj[1]):int(obj[3]),:])
+    for obj in objects:
+        obj=obj.values[0]
+        # clouds.append(pcd[int(obj[0]):int(obj[2]),int(obj[1]):int(obj[3]),:])
         ids.append(obj[-1])
 
     return clouds, ids
@@ -39,8 +40,11 @@ def read_next_image():
     # rgb.sort()
     # depth=glob.glob(base_image_folder_name+'/depth_*')
     # depth.sort()
+    print('here')
     rgb_img = rospy.wait_for_message("/locobot/camera/color/image_raw", Image)
+    print('after getting rgb')
     depth_img = rospy.wait_for_message("/locobot/camera/aligned_depth_to_color/image_raw", Image)
+    print('after getting depth')
     rgb_img = bridge.imgmsg_to_cv2(rgb_img, 'passthrough')
     depth_img = bridge.imgmsg_to_cv2(depth_img, 'passthrough')
     rgb_img = np.array(rgb_img)
@@ -50,8 +54,9 @@ def read_next_image():
 def passivePerception():
     img, depth = read_next_image()
     detections=getDetections(img)
-    if detections.shape[0]>0:
+    if len(detections)>0:
         cloud, labels = getPointCloud(detections, depth)
+        print(labels)
         return cloud, labels
     return None, None
 

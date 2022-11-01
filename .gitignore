@@ -1,3 +1,4 @@
 /yolov5s.pt
 /videos/
 /test_imgs/
+**/**.pyc
