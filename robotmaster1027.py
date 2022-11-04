@@ -23,6 +23,7 @@ while not stop:
         pointClouds, labels = passivePerception()
         if pointClouds is not None:
             objectFound=True
+            print(labels)
             input('enter....')
             # TODO: filter for humans vs other objects
 
