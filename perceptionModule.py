@@ -19,10 +19,10 @@ def getPointCloud(objects, depth_image):
     i, j = np.indices(depth.shape)
     x = (j - cx) / fx * depth
     y = (i - cy) / fy * depth
-    x = x.reshape(-1)
-    y = y.reshape(-1)
-    depth = depth.reshape(-1)
-    pcd = np.stack((x,y,depth)).T
+    # x = x.reshape(-1)
+    # y = y.reshape(-1)
+    # depth = depth.reshape(-1)
+    pcd = np.stack((x,y,depth)).T   # 480 x 680 x 3
 
     # mask = np.nonzero(pcd[:, 2])
     # pcd = pcd[mask]
