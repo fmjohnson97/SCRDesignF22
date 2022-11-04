@@ -217,10 +217,11 @@ class MotionPlanner():
     def execute_plan(self, plan):
         self.move_group.execute(plan, wait=True)
 
-    def display_robot_state(self, state, group_name='robot_arm'):
+    def display_robot_state(self, state):
         msg = DisplayRobotState()
         msg.state = state
         self.rs_pub.publish(msg)
+        print('after publishing...')
         rospy.sleep(1.0)
 
     def get_state_validity(self, state):
@@ -244,8 +245,16 @@ class MotionPlanner():
         # use the service "compute_ik" to compute the inverse kinematics for the arm
         # http://docs.ros.org/en/api/moveit_msgs/html/srv/GetPositionIK.html
         # TODO: handling the solution and parse it to the correct format for use
+        print('get_ik...')
+        print('link_pose: ')
+        print(link_pose)
+        qw, qx,qy, qz = tf.transformations.quaternion_from_matrix(link_pose)
+        x,y,z = link_pose[:3,3]
+        print('loginfo...')
         rospy.loginfo("calling compute_ik...")
+        print('waiting for service...')
         rospy.wait_for_service('/locobot/compute_ik')
+        print('after.')
         # generate message
         try:
             ros_srv = rospy.ServiceProxy('/locobot/compute_ik', GetPositionIK)
@@ -256,19 +265,29 @@ class MotionPlanner():
             # msg.avoid_collisions = False
             msg.ik_link_name = link_name
             pose = PoseStamped()
-            pose.header.frame_id = 'base'  # this is the base link of the robot
-            pose.pose = link_pose
+            pose.header.frame_id = 'locobot/base_link'  # this is the base link of the robot
+            pose.pose.position.x = x
+            pose.pose.position.y = y
+            pose.pose.position.z = z
+            pose.pose.orientation.w = qw
+            pose.pose.orientation.x = qx
+            pose.pose.orientation.y = qy
+            pose.pose.orientation.z = qz
             msg.pose_stamped = pose
-            msg.timeout = 0.1
+            msg.timeout = rospy.Time(0.1)
             req.ik_request = msg
+            print('before calling service...')
             resp1 = ros_srv(req)
 
-            del ros_srv
+            # del ros_srv
 
         except rospy.ServiceException as e:
             print("Service call failed: %s"%e)
             sys.exit(1)
         solution = resp1.solution  # RobotState
+        # publish to ROS
+        self.display_robot_state(solution)
+        input('next...')
         error = resp1.error_code
         return solution
 
