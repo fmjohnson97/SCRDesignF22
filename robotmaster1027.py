@@ -1,5 +1,7 @@
 from perceptionModule import passivePerception
 import rospy
+from perceptionConfig import *
+
 
 ### STARTUP ###
 # initialize functions, constants
@@ -19,13 +21,28 @@ rospy.sleep(1.0)
 while not stop:
     ''' PASSIVE PERCEPTION and Patrol Loop '''
     # engage passive perception module and start/continue the patrol loop
+    people=[]
+    trash=[]
+    maybes=[]
     while not objectFound:
         pointClouds, labels = passivePerception()
         if pointClouds is not None:
             objectFound=True
+            for i, lab in enumerate(labels):
+                if lab in PEOPLE_CLASSES:
+                    people.append(pointClouds[i])
+                elif lab in TRASH_CLASSES:
+                    trash.append(pointClouds[i])
+                elif lab in MAYBE_TRASH_CLASSES:
+                    maybes.append(pointClouds[i])
+                # we don't care about specifically keeping track of the obstacle classes since we're
+                # using the obstacle map from ROS in navigation
+
             print(labels)
             input('enter....')
             # TODO: filter for humans vs other objects
+            #TODO: what will be classified as an obstacle object vs a target object?
+
 
         #TODO: set patrol to start
 
@@ -33,13 +50,7 @@ while not stop:
 
 
 
-    # if passive perception finds an object,
-    # engage Active Perception module
-    while objectFound:
-        execfile("ActivePerception.py")
-        #this module identifies the object and determines
-        #whether we should pick it up
-        #the object either becomes an obstacle or a target
+
 
 
     ### NAVIGATION ###
