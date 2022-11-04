@@ -22,7 +22,7 @@ def getPointCloud(objects, depth_image):
     x = x.reshape(-1)
     y = y.reshape(-1)
     depth = depth.reshape(-1)
-    pcd = np.array([x, y, depth]).T
+    pcd = np.stack((x,y,depth)).T
 
     # mask = np.nonzero(pcd[:, 2])
     # pcd = pcd[mask]
@@ -30,7 +30,7 @@ def getPointCloud(objects, depth_image):
     ids=[]
     for obj in objects:
         obj=obj.values[0]
-        # clouds.append(pcd[int(obj[0]):int(obj[2]),int(obj[1]):int(obj[3]),:])
+        clouds.append(pcd[int(obj[0]):int(obj[2]),int(obj[1]):int(obj[3]),:])
         ids.append(obj[-1])
 
     return clouds, ids
