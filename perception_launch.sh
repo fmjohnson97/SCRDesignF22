@@ -1,0 +1,1 @@
+roslaunch interbotix_xslocobot_perception xslocobot_perception.launch robot_model:=locobot_wx250s use_rviz:=false use_static_transform_pub:=true

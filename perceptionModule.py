@@ -10,6 +10,7 @@ from perceptionConfig import *
 
 def getDetections(image):
     results = YOLO(image)
+    results.show()
     #returns list of pandas dataframes that contain
     # xmin        ymin        xmax        ymax  confidence  class    name
     return results.pandas().xyxy

@@ -1,0 +1,1 @@
+roslaunch interbotix_xslocobot_moveit xslocobot_moveit.launch robot_model:=locobot_wx250s use_actual:=true dof:=6 use_camera:=true align_depth:=true

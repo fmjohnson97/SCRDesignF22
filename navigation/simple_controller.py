@@ -19,9 +19,9 @@ class SimpleController:
   def __init__(self):
     self.pub = rospy.Publisher('/locobot/cmd_vel', Twist)
     self.linear_v = 0.08  # this is the max limit of the velocity value
-    self.ang_v = 2*np.pi/180  # positive is counter-clockwise, negative is clockwise
+    self.ang_v = 1*np.pi/180  # positive is counter-clockwise, negative is clockwise
     self.x_threshold = 1e-3
-    self.theta_threshold = 1 * np.pi / 180
+    self.theta_threshold = 0.5 * np.pi / 180
     rospy.sleep(1.0)
     """
     TODO: the current rotation seems to be a bit off. When we ask it to go 90 degrees, it dosen't really go 90 degrees.
@@ -107,7 +107,7 @@ class SimpleController:
 
     msg = Twist()
 
-    rate = rospy.Rate(40)
+    rate = rospy.Rate(50)
     while True:
       pose, twist = self.get_odom()
       # x1 = pose[0]
@@ -182,10 +182,10 @@ if __name__ == "__main__":
   # controller.control_theta(-10*np.pi/180)
 
   # * waypoint tracking *
-  waypoints = [[1.27, 0.0, 90*np.pi/180],
-               [0.8,0, 90*np.pi/180],
-               [1.27, 0.0, 90*np.pi/180],
-               [0.8, 0.0, 90*np.pi/180]]
+  waypoints = [[1.2, 0.0, -90*np.pi/180],
+               [0.5,0, -90*np.pi/180],
+               [1.2, 0.0, -90*np.pi/180],
+               [0.5, 0.0, -90*np.pi/180]]
   for waypoint in waypoints:
     print('waypoint: ', waypoint)
     controller.step(waypoint)

@@ -1,0 +1,1 @@
+roslaunch interbotix_xslocobot_nav xslocobot_nav.launch robot_model:=locobot_wx250s use_lidar:=false rtabmap_args:=-d launch_driver:=false use_rviz:=true
