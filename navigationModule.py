@@ -2,7 +2,13 @@ import rospy
 from nav_msgs.msg import OccupancyGrid
 import numpy as np
 import transformations as tf
-from pyhpp.a_star import  AStar
+# from pyhpp.a_star import  AStar
+from matplotlib import pyplot as plt
+
+#from here: https://github.com/richardos/occupancy-grid-a-star
+from occupancy_grid_a_star.a_star import a_star
+from occupancy_grid_a_star.gridmap import OccupancyGridMap
+from occupancy_grid_a_star.utils import plot_path
 
 from navigationConfig import *
 
@@ -31,33 +37,64 @@ def getObstacleMap():
 
     data = msg.data
     data = np.array(data).reshape((height, width))  # might be wrong
-    return data
+    return data, pose
 
 
-def planPath(start, end, obstacle_coords, map_size):
-    # based on this https://pypi.org/project/pyhpp/
-    scenario = {
-        # z=0 to make it a 2d mapping problem
-        "dimension": {"x": map_size[0], "y": map_size[1], "z": 0},
-        "waypoint": {
-            "start": {"x": start[0], "y": start[1], "z": 0},
-            "stop": {"x": end[0], "y" : end[1], "z": 0},
-            "allowDiagonal": False
-            },
-        "data": {
-            "size": len(obstacle_coords[0]),
-            "x": obstacle_coords[0],
-            "y": obstacle_coords[1],
-            },
-        "boundary": {
-            "zCeil": 6,
-            "zFloor": 1
-            }
-    }
-    a_star = AStar(scenario)
-    result = a_star.calculate_path()
-    path = np.stack([result['path']['x'], result['path']['y']]).T
-    return path #returns the int coords of where to go to avoid obstacles and reach goal
+# def OLDplanPath(start, end, obstacle_coords, map_size):
+#     # based on this https://pypi.org/project/pyhpp/
+#     scenario = {
+#         # z=0 to make it a 2d mapping problem
+#         "dimension": {"x": map_size[0], "y": map_size[1], "z": 0},
+#         "waypoint": {
+#             "start": {"x": start[0], "y": start[1], "z": 0},
+#             "stop": {"x": end[0], "y" : end[1], "z": 0},
+#             "allowDiagonal": False
+#             },
+#         "data": {
+#             "size": len(obstacle_coords[0]),
+#             "x": obstacle_coords[0],
+#             "y": obstacle_coords[1],
+#             },
+#         "boundary": {
+#             "zCeil": 6,
+#             "zFloor": 1
+#             }
+#     }
+#     a_star = AStar(scenario)
+#     result = a_star.calculate_path()
+#     path = np.stack([result['path']['x'], result['path']['y']]).T
+#     return path #returns the int coords of where to go to avoid obstacles and reach goal
+
+def planPath(start, end, occupancy_map):
+    # load the map
+    #the whole thing is 4 meters, so can divde by the number of grids?; should give value in meters
+    gmap = OccupancyGridMap(occupancy_map, cell_size=4/occupancy_map.shape[0], occupancy_threshold=obstacle_map_threshold)
+
+    # set a start and an end node (in meters)
+    start_node = tuple(start)
+    goal_node = tuple(end)
+
+    # run A*
+    path, path_px = a_star(start_node, goal_node, gmap, movement='8N')
+
+    gmap.plot()
+
+    if path:
+        # plot resulting path in pixels over the map
+        plot_path(path_px)
+        plt.show()
+        return [path, path_px]
+    else:
+        print('Goal is not reachable')
+
+        # plot start and goal points over the map (in pixels)
+        start_node_px = gmap.get_index_from_coordinates(start_node[0], start_node[1])
+        goal_node_px = gmap.get_index_from_coordinates(goal_node[0], goal_node[1])
+
+        plt.plot(start_node_px[0], start_node_px[1], 'ro')
+        plt.plot(goal_node_px[0], goal_node_px[1], 'go')
+
+    plt.show()
 
 def followPath(path):
     #this path is the global position, not relative to the previous position
@@ -73,7 +110,7 @@ def navToPointsFound(people, trash, maybes):
     goals = [np.mean(t,axis=0) for t in trash] #not exactly sure what shape trash is going to have for this to work
 
     for g in goals:
-        obstacle_map = getObstacleMap()
+        obstacle_map, pose = getObstacleMap()
         # process obstacle map to get x,y points of the obstacles for the a* algorithm
         obstacle_coords = [[], []]
         for i in range(obstacle_map.shape[0]):
