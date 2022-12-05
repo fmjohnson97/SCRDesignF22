@@ -49,12 +49,12 @@ while not stop:
                 else:
                     obstacles.append(pointClouds[i])
                     obstacle_labels.append(lab)
-    #     else:
-    #         # set patrol to start
-    #         continueNavCircuit()
+        else:
+            # set patrol to start
+            continueNavCircuit()
 
-    # print(labels)
-    # navToPointsFound(people, trash, maybes)
+    print(labels)
+    navToPointsFound(people, trash, maybes)
 
     #reset variables and keep track of what we've found in the space
     #these are old point clouds so it might not be worthwhile to save them since we'll never be in that
