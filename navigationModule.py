@@ -430,7 +430,7 @@ def planPath(start, end, occupancy_map):
         # plot resulting path in pixels over the map
         plot_path(path_px)
         # plt.show()
-        return [path, path_px]
+        return path #[path, path_px]
     else:
         print('Goal is not reachable')
         return None
@@ -445,23 +445,24 @@ def followPath(path):
         robot_controller.step(p)
     pass
 
-def navToPointsFound(people, trash, maybes):
+def navToPointsFound(people, trash_point, maybes):
     trash_pos_offset = 0 #TODO: do we need to be offset from the trash at all?, also move this to config
-    goals = [np.mean(t,axis=0) for t in trash] #not exactly sure what shape trash is going to have for this to work
+    # goals = [np.mean(t,axis=0) for t in trash] #not exactly sure what shape trash is going to have for this to work
 
-    for g in goals:
-        obstacle_map, pose = getObstacleMap()
-        # process obstacle map to get x,y points of the obstacles for the a* algorithm
-        obstacle_coords = [[], []]
-        for i in range(obstacle_map.shape[0]):
-            for j in range(obstacle_map.shape[1]):
-                if obstacle_map[i,j]> obstacle_map_threshold:
-                    obstacle_coords[0].append(i)
-                    obstacle_coords[1].append(j)
+    # for g in goals:
+    obstacle_map, pose = getObstacleMap()
+    # process obstacle map to get x,y points of the obstacles for the a* algorithm
+    # obstacle_coords = [[], []]
+    # for i in range(obstacle_map.shape[0]):
+    #     for j in range(obstacle_map.shape[1]):
+    #         if obstacle_map[i,j]> obstacle_map_threshold:
+    #             obstacle_coords[0].append(i)
+    #             obstacle_coords[1].append(j)
 
-        start = 0 #ToDO: get robot start point
-        path = planPath(start, g, obstacle_coords, obstacle_map.shape)
-        followPath(path)
+    start = (2,0) #ToDO: get robot start point
+    path = planPath(start, trash_point[:-1] , obstacle_map)
+    # if path:
+    #     followPath(path)
 
 
 def continueNavCircuit():
