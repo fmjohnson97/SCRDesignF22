@@ -292,7 +292,7 @@ class MotionPlanner():
         solution = resp1.solution  # RobotState
         # publish to ROS
         self.display_robot_state(solution)
-        input('next...')
+        # input('next...')
         error = resp1.error_code
         return solution
 
@@ -303,9 +303,9 @@ def test_pose_plan(planner: MotionPlanner):
   goal = planner.pose_msg_to_tf(goal)
   plan = planner.pose_motion_plan(state.joint_state, goal, [])
   print(plan)
-  com = input('executing?').strip()
-  if com == 'y':
-    planner.execute_plan(plan[1])
+#   com = input('executing?').strip()
+#   if com == 'y':
+  planner.execute_plan(plan[1])
 
 def test_save_home(planner: MotionPlanner, fname=None):
     if fname is None:
@@ -319,47 +319,47 @@ def test_load_home(planner: MotionPlanner):
     state = planner.move_group.get_current_state()
     plan = planner.joint_motion_plan(state.joint_state, goal_joint, [])
     print(plan)
-    com = input('executing?').strip()
-    if com == 'y':
-        planner.execute_plan(plan[1])
+    # com = input('executing?').strip()
+    # if com == 'y':
+    planner.execute_plan(plan[1])
 
 def test_load_pose(planner: MotionPlanner, fname):
     goal_joint = planner.load_joints(fname)
     state = planner.move_group.get_current_state()
     planner.display_robot_state(state)
-    input('wait...')
+    # input('wait...')
     plan = planner.joint_motion_plan(state.joint_state, goal_joint, [])
     print(plan)
-    com = input('executing?').strip()
-    if com == 'y':
-        planner.execute_plan(plan[1])
+    # com = input('executing?').strip()
+    # if com == 'y':
+    planner.execute_plan(plan[1])
 
 
-from gripper_test import Gripper
+from manipulation.gripper_test import Gripper
 if __name__ == "__main__":
   # test
   rospy.init_node('planner_test')
   planner = MotionPlanner()
   
-#   test_save_home(planner, 'grasp_pose')
+  test_save_home(planner, 'sense_pose')
 
-  gripper = Gripper()
-  # watter bottle: 0.12
-  gripper.control(0.85)
-  test_load_pose(planner, 'home_position')
-  input('next...')
-  test_load_pose(planner, 'pre_grasp_pose')
-  test_load_pose(planner, 'grasp_pose')
-  gripper.control(0.05)
-  input('next...')
+#   gripper = Gripper()
+#   # watter bottle: 0.12
+#   gripper.control(0.85)
+#   test_load_pose(planner, 'home_position')
+#   input('next...')
+#   test_load_pose(planner, 'pre_grasp_pose')
+#   test_load_pose(planner, 'grasp_pose')
+#   gripper.control(0.05)
+#   input('next...')
 
-  test_load_pose(planner, 'home_position')
+#   test_load_pose(planner, 'home_position')
 
-  test_load_pose(planner, 'deposit_pose')
-  gripper.control(0.85)
-  input('next...')
+#   test_load_pose(planner, 'deposit_pose')
+#   gripper.control(0.85)
+#   input('next...')
 
-  test_load_pose(planner, 'home_position')
+#   test_load_pose(planner, 'home_position')
 
 
 #   test_save_home(planner, 'deposit_pose')

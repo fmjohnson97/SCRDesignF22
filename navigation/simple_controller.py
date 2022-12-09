@@ -19,7 +19,7 @@ class SimpleController:
   def __init__(self):
     self.pub = rospy.Publisher('/locobot/cmd_vel', Twist)
     self.linear_v = 0.08  # this is the max limit of the velocity value
-    self.ang_v = 1*np.pi/180  # positive is counter-clockwise, negative is clockwise
+    self.ang_v = 0.5*np.pi/180  # positive is counter-clockwise, negative is clockwise
     self.x_threshold = 1e-3
     self.theta_threshold = 0.5 * np.pi / 180
     rospy.sleep(1.0)
@@ -62,11 +62,11 @@ class SimpleController:
 
     msg = Twist()
 
-    rate = rospy.Rate(40)
+    rate = rospy.Rate(25)
     while True:
       pose, twist = self.get_odom()  # get current odometry
       # x1 = pose[0]
-      print('tracking position...')
+      # print('tracking position...')
       # obtain the relative pose
       # del_pose = pose.dot(np.linalg.inv(start_pose))
       cur_pose_in_start = np.linalg.inv(start_pose).dot(pose)
@@ -76,16 +76,16 @@ class SimpleController:
 
       ang_diff = 0-dth  # we want to stablizie the robot when moving forward. So the target angular value is 0
 
-      print('current pose in start:', cur_pose_in_start)
-      print('diff: ', diff)
-      print('ang_diff: ', ang_diff)
+      # print('current pose in start:', cur_pose_in_start)
+      # print('diff: ', diff)
+      # print('ang_diff: ', ang_diff)
 
       if np.abs(diff) < self.x_threshold:
         break
       abs_value = np.abs(self.linear_v * diff*10)
       abs_value = min(abs_value, self.linear_v)
       msg.linear.x = abs_value * np.sign(diff)
-      print('position velocity: ', abs_value * np.sign(diff))
+      # print('position velocity: ', abs_value * np.sign(diff))
 
       # for stabalizing the drift
       abs_value = np.abs(self.ang_v * ang_diff*10)
@@ -111,7 +111,7 @@ class SimpleController:
     while True:
       pose, twist = self.get_odom()
       # x1 = pose[0]
-      print('tracking rotation...')
+      # print('tracking rotation...')
       # obtain the relative pose
       # del_pose = pose.dot(np.linalg.inv(start_pose))
       cur_pose_in_start = np.linalg.inv(start_pose).dot(pose)
@@ -119,8 +119,8 @@ class SimpleController:
       dx, dy, dth = self.pose_3d_to_2d(cur_pose_in_start)
       diff = theta-dth
       # diff = x-(x1-x0)
-      print('current pose in start:', cur_pose_in_start)
-      print('diff: ', diff)
+      # print('current pose in start:', cur_pose_in_start)
+      # print('diff: ', diff)
 
 
       if np.abs(diff) < self.theta_threshold:
@@ -128,7 +128,7 @@ class SimpleController:
       abs_value = np.abs(self.ang_v * diff*10)
       abs_value = min(abs_value, self.ang_v)
       msg.angular.z = abs_value * np.sign(diff)
-      print('angle velocity: ', abs_value * np.sign(diff))
+      # print('angle velocity: ', abs_value * np.sign(diff))
 
       self.pub.publish(msg)
       rate.sleep()

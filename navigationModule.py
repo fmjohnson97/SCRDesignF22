@@ -1,12 +1,12 @@
-# import rospy
-# from nav_msgs.msg import OccupancyGrid
+import rospy
+from nav_msgs.msg import OccupancyGrid
 import numpy as np
 import transformations as tf
-# from pyhpp.a_star import  AStar
 from matplotlib import pyplot as plt
 import math
 import matplotlib.pyplot as plt
 from heapq import heappush, heappop
+import tf2_ros
 
 #from here: https://github.com/richardos/occupancy-grid-a-star
 # from occupancy_grid_a_star.a_star import a_star
@@ -43,8 +43,8 @@ def plot_path(path):
 
     # plot goal point
     plt.plot(goal_x, goal_y, 'go')
-
-    plt.show()
+    plt.savefig('path_test.png')
+    # plt.show()
 
 class OccupancyGridMap:
     def __init__(self, data_array, cell_size, occupancy_threshold=0.8):
@@ -64,14 +64,15 @@ class OccupancyGridMap:
         # 2D array to mark visited nodes (in the beginning, no node has been visited)
         self.visited = np.zeros(self.dim_cells, dtype=np.float32)
 
+
     def mark_visited_idx(self, point_idx):
         """
         Mark a point as visited.
         :param point_idx: a point (x, y) in data array
         """
         x_index, y_index = point_idx
-        if x_index < 0 or y_index < 0 or x_index >= self.dim_cells[0] or y_index >= self.dim_cells[1]:
-            raise Exception('Point is outside map boundary')
+        # if x_index < 0 or y_index < 0 or x_index >= self.dim_cells[0] or y_index >= self.dim_cells[1]:
+        #     raise Exception('Point is outside map boundary')
 
         self.visited[y_index][x_index] = 1.0
 
@@ -92,8 +93,8 @@ class OccupancyGridMap:
         :return: True if the given point is visited, false otherwise
         """
         x_index, y_index = point_idx
-        if x_index < 0 or y_index < 0 or x_index >= self.dim_cells[0] or y_index >= self.dim_cells[1]:
-            raise Exception('Point is outside map boundary')
+        # if x_index < 0 or y_index < 0 or x_index >= self.dim_cells[0] or y_index >= self.dim_cells[1]:
+        #     raise Exception('Point is outside map boundary')
 
         if self.visited[y_index][x_index] == 1.0:
             return True
@@ -118,10 +119,10 @@ class OccupancyGridMap:
         :return: the occupancy value of the given point
         """
         x_index, y_index = point_idx
-        if x_index < 0 or y_index < 0 or x_index >= self.dim_cells[0] or y_index >= self.dim_cells[1]:
-            raise Exception('Point is outside map boundary')
+        # if x_index < 0 or y_index < 0 or x_index >= self.dim_cells[0] or y_index >= self.dim_cells[1]:
+        #     raise Exception('Point is outside map boundary')
 
-        return self.data[y_index][x_index]
+        return self.data[y_index,x_index]
 
     def get_data(self, point):
         """
@@ -141,8 +142,8 @@ class OccupancyGridMap:
         :param new_value: the new occupancy values
         """
         x_index, y_index = point_idx
-        if x_index < 0 or y_index < 0 or x_index >= self.dim_cells[0] or y_index >= self.dim_cells[1]:
-            raise Exception('Point is outside map boundary')
+        # if x_index < 0 or y_index < 0 or x_index >= self.dim_cells[0] or y_index >= self.dim_cells[1]:
+        #     raise Exception('Point is outside map boundary')
 
         self.data[y_index][x_index] = new_value
 
@@ -231,6 +232,9 @@ class OccupancyGridMap:
         """
         plot the grid map
         """
+        plt.imshow(self.data, vmin=min_val, vmax=1, origin=origin, interpolation='none', alpha=alpha)
+        plt.draw()
+        plt.savefig('map.png')
         plt.imshow(self.data, vmin=min_val, vmax=1, origin=origin, interpolation='none', alpha=alpha)
         plt.draw()
 
@@ -359,6 +363,7 @@ def a_star(start_m, goal_m, gmap, movement='8N', occupancy_cost_factor=3):
     return path, path_idx
 ''' end of code from here: https://github.com/richardos/occupancy-grid-a-star'''
 
+from std_srvs.srv import EmptyRequest, EmptyResponse, Empty
 def getObstacleMap():
     """
         extract the
@@ -369,6 +374,14 @@ def getObstacleMap():
         NOTE: we may not want to update the map every second. We can specify some frequency to
         update the map instead
         """
+    # clear the costmap before getting it
+    rospy.wait_for_service('/locobot/move_base/clear_costmaps')
+    try:
+        clear_costmap = rospy.ServiceProxy('/locobot/move_base/clear_costmaps', Empty)
+        resp1 = clear_costmap()
+    except rospy.ServiceException as e:
+        print("Service call failed: %s"%e)
+    rospy.sleep(1.0)
     msg = rospy.wait_for_message('/locobot/move_base/global_costmap/costmap', OccupancyGrid)
     # base_frame = msg.header.frame_id
     # resol = msg.info.resolution
@@ -384,49 +397,97 @@ def getObstacleMap():
 
     data = msg.data
     data = np.array(data).reshape((height, width))  # might be wrong
-    return data, pose
+    return data, pose, msg.info.resolution
 
 
-def planPath(start, end, occupancy_map):
+def planPath(start, end, occupancy_map, resolution):
     # load the map
     #the whole thing is 4 meters, so can divde by the number of grids?; should give value in meters
-    gmap = OccupancyGridMap(occupancy_map, cell_size=4/occupancy_map.shape[0], occupancy_threshold=obstacle_map_threshold)
+    print('resolution: ', resolution)
+    print(occupancy_map.shape)
+    gmap = OccupancyGridMap(occupancy_map, cell_size=resolution, occupancy_threshold=obstacle_map_threshold)
 
     # set a start and an end node (in meters)
-    start_node = tuple(start)
-    goal_node = tuple(end)
+    start_node = (start[0], start[1])
+    goal_node = (end[0], end[1])
 
+    gmap.plot()
+    
     # run A*
     path, path_px = a_star(start_node, goal_node, gmap, movement='8N')
 
-    gmap.plot()
+    
 
     if path:
         # plot resulting path in pixels over the map
         plot_path(path_px)
+        # breakpoint()
         # plt.show()
         return path #[path, path_px]
     else:
         print('Goal is not reachable')
+        # breakpoint()
         return None
 
 
 def followPath(path):
-    dist_path = np.diff(path)
-    path_angles = [np.arctan2(point[-1] / point[-2]) for point in dist_path]
+    dist_path = np.diff(path, axis=0)
+    path_angles = np.array([np.arctan2(point[0], point[1]) for point in dist_path]).reshape(-1,1)
     new_path = np.hstack([dist_path, path_angles])
     for p in new_path:
         robot_controller.step(p)
 
 
-def navToPointsFound(people, trash_point, maybes):
-    obstacle_map, pose = getObstacleMap()
+def navToPointsFound(people, trash_point, maybes, tfBuffer: tf2_ros.Buffer):
+    # obstacle_map, pose, resol = getObstacleMap()
+    # breakpoint()
+    #robot in world position
+    # trans = tfBuffer.lookup_transform('map', 'locobot/base_link', rospy.Time())  # color in base
+    # pos = [trans.transform.translation.x, trans.transform.translation.y, trans.transform.translation.z]
+    # ori = [trans.transform.rotation.w, trans.transform.rotation.x, trans.transform.rotation.y, trans.transform.rotation.z]
+    # base_in_world = np.eye(4)
+    # base_in_world = tf.transformations.quaternion_matrix([ori[0],ori[1],ori[2],ori[3]])
+    # base_in_world[0,3] = pos[0]
+    # base_in_world[1,3] = pos[1]
+    # base_in_world[2,3] = pos[2]
 
-    start = (2,0) #ToDO: get robot start point # (horizonal #,  vertical #)
-    path = planPath(start, trash_point-trash_pos_offset , obstacle_map)
-    if path:
-        followPath(path)
+    # offset_base_in_world = np.array(base_in_world)[:2,3] + robot_radius * base_in_world[:2,0]
+    # print('offset base in world: ', offset_base_in_world)
+    #world to map transformation using pose
+    # map_in_world = pose
+    # world_in_map = np.linalg.inv(map_in_world)
+    
+    # base_in_map = world_in_map.dot(base_in_world)
+    
+    # start = base_in_map[:2,3]+robot_radius * base_in_map[:2,0]
+    # print(start)
+    trash_with_offset=trash_point[:-1]-trash_pos_offset
+    trash_in_base = np.zeros((3))
+    trash_in_base[0] = trash_with_offset[0]
+    trash_in_base[1] = trash_with_offset[1]
+    # trash_in_map = base_in_map[:3,:3].dot(trash_in_base) + base_in_map[:3,3]
 
+    # goal = trash_in_map[:2]
+    
+    # trash_in_world = base_in_world[:3,:3].dot(trash_in_base) + base_in_world[:3,3]
+    # print('start in map: ', start)
+
+    # print('trash in world: ', trash_in_world)
+    # print('trash in map: ', goal)
+    # goal[0] = min(obstacle_map.shape[0]*resol, goal[0])
+    # goal[1] = min(obstacle_map.shape[1]*resol, goal[1])
+
+    # path = planPath(start, goal, obstacle_map, resol)
+    # path=np.vstack([base_in_map[:2,3], path])
+    pos_diff=trash_point - trash_in_base
+    # angle=np.arctan2(pos_diff[1], pos_diff[0])# * 0.9
+    angle = np.arctan2(trash_point[1], trash_point[0])
+    robot_controller.step([trash_in_base[0], trash_in_base[1], angle])
+    # input('beore followpath')
+    # if path is not None:
+    #     print('path', path)
+    #     followPath(path)
+    # input('finished')
 
 def continueNavCircuit():
     obstacle_map = getObstacleMap()
@@ -437,7 +498,7 @@ def continueNavCircuit():
 
     #TODO: plan path to there
     start = 0 #ToDO: get robot start point
-    path = planPath(start, end, obstacle_map
+    path = planPath(start, end, obstacle_map)
     followPath(path)
 
 # if __name__=='__main__':

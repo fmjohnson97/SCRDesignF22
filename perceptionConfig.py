@@ -24,13 +24,13 @@ bridge = CvBridge()
 
 #Yolov5 class categories
 OBSTACLE_CLASSES = ["bicycle","car","motorcycle","airplane","bus","train","truck","boat","fire hydrant","parking meter",
-                    "bench","bird","cat","dog","horse","sheep","cow","elephant","bear","zebra","giraffe","backpack",
+                    "bench","bird","cat","dog","horse","sheep","cow","elephant","bear","zebra","backpack",
                     "handbag","suitcase","skis","snowboard","baseball bat","skateboard","surfboard","tennis racket",
                     "chair","couch","potted plant","bed","dining table","toilet","tv","laptop","mouse","remote",
                     "keyboard","cell phone","microwave","oven","toaster","sink","refrigerator","clock","vase",
                     "teddy bear","hair drier","toothbrush"]
 MAYBE_TRASH_CLASSES=["umbrella","tie","sports ball","kite","baseball glove","frisbee","bowl","banana","apple",
-                     "sandwich","orange","broccoli","carrot","hot dog","pizza","donut","cake","book","scissors"]
+                     "sandwich","broccoli","carrot","hot dog","pizza","donut","cake","book","scissors"]
 TRAFFIC_CLASSES=["traffic light","stop sign",]
-TRASH_CLASSES=["bottle","wine glass","cup","fork","knife","spoon"]
+TRASH_CLASSES=["giraffe","orange","bottle","wine glass","cup","fork","knife","spoon"]
 PEOPLE_CLASSES=["person"]

@@ -29,8 +29,9 @@ def getPointCloud(objects, depth_image):
     # pcd = pcd[mask]
     clouds=[]
     ids=[]
-    for obj in objects:
-        obj=obj.values[0]
+    # breakpoint()
+    for obj in objects[0].values:
+        # obj=obj[0]
         clouds.append(pcd[int(obj[0]):int(obj[2]),int(obj[1]):int(obj[3]),:])
         ids.append(obj[-1])
 
